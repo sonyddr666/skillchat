@@ -20,13 +20,16 @@ DEFAULT_CODEX_REASONING = "medium"
 DEFAULT_CODEX_HISTORY_LIMIT = 40
 DEFAULT_CODEX_INSTRUCTIONS = os.getenv(
     "SKILLFLOW_CODEX_DEFAULT_INSTRUCTIONS",
-    "Responda em português do Brasil e mantenha continuidade com base na conversa.",
+    "Responda em portugu\u00eas do Brasil e mantenha continuidade com base na conversa.",
 )
 CODEX_RESPONSES_URL = "https://chatgpt.com/backend-api/codex/responses"
 OPENAI_OAUTH_CLIENT_ID = os.getenv("OPENAI_OAUTH_CLIENT_ID", "app_EMoamEEZ73f0CkXaXp7hrann")
 TOKEN_URL = "https://auth.openai.com/oauth/token"
 
-DEFAULT_GEMINI_MODEL = os.getenv("DEFAULT_GEMINI_MODEL", "gemini-2.0-flash")
+# gemini-2.0-flash depreciado em fev/2026, shutdown jun/2026
+# substituto oficial: gemini-2.5-flash
+# ref: https://ai.google.dev/gemini-api/docs/deprecations
+DEFAULT_GEMINI_MODEL = os.getenv("DEFAULT_GEMINI_MODEL", "gemini-2.5-flash")
 GEMINI_BASE_URL = "https://generativelanguage.googleapis.com/v1beta/models"
 
 STATE_KEYS = [

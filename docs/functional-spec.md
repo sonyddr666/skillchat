@@ -1,7 +1,7 @@
 # SkillFlow Chat — Especificação Funcional
 
 > Idioma: pt-BR  
-> Versão: 0.1.0-draft  
+> Versão: 0.1.1  
 > Fonte de verdade: `server.js` (Node) + `public/index.html`  
 > Status: MVP em definição
 
@@ -47,7 +47,7 @@ compatibilidade de contrato com o frontend existente.
 ```
 FastAPI >= 0.111
 Pydantic v2
-SQLite (via aiosqlite ou sqlite3 síncrono em thread pool)
+SQLite (sqlite3 síncrono em thread pool)
 argon2-cffi (hash de senha Argon2id)
 pytest + httpx (testes)
 uvicorn (servidor ASGI)
@@ -87,18 +87,9 @@ skillchat/
 │       ├── codex.py
 │       └── gemini.py
 ├── data/
-│   ├── workspaces/
-│   ├── skills/
-│   └── attachments/
 ├── docs/
 │   └── functional-spec.md
 ├── tests/
-│   ├── conftest.py
-│   ├── test_auth.py
-│   ├── test_state.py
-│   ├── test_skills.py
-│   ├── test_filesystem.py
-│   └── test_chat.py
 ├── requirements.txt
 ├── requirements-dev.txt
 └── pyproject.toml
@@ -182,17 +173,12 @@ POST /api/state         body: { state: { gc_cfg?, gc_theme?, ... } }
                         → 200 { ok: true }
 ```
 
-Chaves permitidas no merge:
-`gc_cfg`, `gc_theme`, `gc_plugins`, `gc_convs`, `gc_user_memory`,
-`gc_pending_approvals`, `gc_skill_packs`, `gc_tts_voice`,
-`gc_tts_autoplay`, `gc_sb_collapsed`
-
 ### 8.3 Skills customizadas
 
 ```
-GET    /api/skills          → 200 { skills: [...] }
-POST   /api/skills          body: SkillPayload → 200 { ok, skill }
-DELETE /api/skills/{id}     → 200 { ok, id }
+GET    /api/skills
+POST   /api/skills
+DELETE /api/skills/{id}
 ```
 
 ### 8.4 Filesystem
@@ -230,74 +216,49 @@ response: { ok, provider, model, message, tool_calls, usage, auth, payload }
 - Endpoint: `https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent`
 - Auth: API Key por request
 - Formato: JSON síncrono
-- Default model: `gemini-2.0-flash`
+- Default model: `gemini-2.5-flash` *(gemini-2.0-flash depreciado, shutdown 1/jun/2026)*
+- Substitutos válidos: `gemini-2.5-flash`, `gemini-2.5-pro`, `gemini-2.5-flash-lite`
+- Ref: https://ai.google.dev/gemini-api/docs/deprecations
 
 ---
 
-## 10. Contrato Interno do Chat
-
-```python
-class ChatRequest(BaseModel):
-    provider: str
-    model: str
-    auth: dict | str
-    messages: list[dict]
-    input: list[dict] | None = None
-    tools: list[dict] = []
-    attachments: list[dict] = []
-    reasoning: str = "medium"
-    history_limit: int = 40
-    instructions: str = ""
-    session_id: str = ""
-
-class ChatResponse(BaseModel):
-    message: str
-    tool_calls: list[dict] = []
-    usage: dict | None = None
-    auth: dict
-    raw: dict
-```
-
----
-
-## 11. Limites e Fora de Escopo
+## 10. Limites e Fora de Escopo
 
 ### MVP cobre
-- Autenticação local (registro, login, logout, me)
+- Autenticação local
 - Chat com Codex e Gemini
-- Persistência de estado (`/api/state`)
-- Skills customizadas por usuário
-- Filesystem por usuário (CRUD completo)
-- Sessão persistida em banco (sobrevive restart)
+- Persistência de estado
+- Skills customizadas
+- Filesystem por usuário
+- Sessão persistida em banco
 
-### Pós-MVP (fora do MVP)
-- Live Mode (SSE/streaming para o frontend)
+### Pós-MVP
+- Live Mode / SSE
 - STT / TTS
-- `/api/exec` (execução de processos)
+- `/api/exec`
 - `/api/system-prompts`
 - Compartilhamento de tela
-- Paridade total da UI atual
+- Paridade total da UI
 - Cofre de secrets
 
 ---
 
-## 12. Critérios de Aceite
+## 11. Critérios de Aceite
 
-### Testes automatizados obrigatórios
+### Testes automatizados
 - [ ] Cadastro, login, logout e `/auth/me`
 - [ ] Persistência de sessão após restart
 - [ ] Merge seguro de `/api/state`
-- [ ] CRUD de skills por usuário (isolamento entre contas)
+- [ ] CRUD de skills (isolamento entre contas)
 - [ ] Proteção contra path traversal
-- [ ] Escrita, leitura, rename, delete e download de arquivos
-- [ ] `POST /api/chat` com adapter mockado — codex
-- [ ] `POST /api/chat` com adapter mockado — gemini
+- [ ] Escrita, leitura, rename, delete e download
+- [ ] `POST /api/chat` adapter mockado — codex
+- [ ] `POST /api/chat` adapter mockado — gemini
 
-### Smoke manual do MVP
-- [ ] Criar conta
-- [ ] Autenticar
+### Smoke manual
+- [ ] Criar conta e autenticar
 - [ ] Salvar estado
 - [ ] Criar skill
 - [ ] Criar e ler arquivo no workspace
-- [ ] Enviar conversa para `codex`
-- [ ] Enviar conversa para `gemini`
+- [ ] Chat para `codex`
+- [ ] Chat para `gemini`
